@@ -1,0 +1,59 @@
+name=variance_test_catalogue_1e12_ZH
+
+M200=1e12
+#boxsize=600
+z=2
+
+create_random_galaxy_catalogue=true
+validate_galaxies=true
+allow_variance=true
+
+
+variance_Rgas=1.1
+variance_Rstar=1.1
+variance_Hgas=1.1
+variance_Hstar=1.1
+variance_Mgas=1.1
+variance_Mstellar=1.1
+variance_Z0=1.1
+variance_concentration=1.1
+variance_Mdot=1.1
+variance_Rsonic=2.
+
+concentration=14.0
+Mstellar=5e7
+Mgas=8e7
+Rgas=1.0
+Hgas=0.5
+Rstar=0.5
+Hstar=0.1
+Mdot=0.01
+Rsonic=2.0
+Z0=1.0
+
+Z_profile=powerlaw
+# options:
+# constant
+# powerlaw
+Z_slope=-0.6
+
+BulgeFraction=0.2
+BulgeScaleLength=0.1
+
+strict_integration=true
+tolerance=5e-1
+runtime=40.;
+
+magnetic=true
+#Rcmax = 
+sampling=cartesian #or cartesian or equalmass
+mtarget=1e5
+NBox=3
+LBox1=100
+dx1=2
+LBox2=200
+dx2=5
+LBox3=300
+dx3=10
+
+

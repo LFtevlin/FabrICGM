@@ -1,0 +1,70 @@
+name=paper
+
+M200=1.0e12
+#boxsize=600
+z=0.0
+
+create_random_galaxy_catalogue=true
+validate_galaxies=false
+allow_variance=false
+
+concentration=8.0
+Mstar=3e10
+Mgas=5e10
+Rgas=5.0
+Hgas=1.5
+Rstar=2.0
+Hstar=0.5
+Mdot=3.
+Rsonic=5.0
+# metallicity
+Z0=1.0
+
+Z_profile=powerlaw
+# options:
+# constant
+# powerlaw
+Z_slope=-0.6
+
+BulgeFraction=0.2
+BulgeScaleLength=0.1
+
+variance_Rgas=1.5
+variance_Rstar=1.5
+variance_Hgas=1.5
+variance_Hstar=1.5
+variance_Mgas=2.0
+variance_Mstar=2.0
+variance_Z0=3.0
+variance_concentration=1.3
+variance_Mdot=15.0
+variance_Rsonic=3.0
+
+tolerance=5e-1
+runtime=60.;
+
+magnetic=true
+#Rcmax = 
+sampling=equalmass #or cartesian or equalmass, both
+mtarget=1e5
+#NBox=3
+#LBox1=200
+#dx1=2
+#LBox2=500
+#dx2=5
+#LBox3=5000
+#dx3=50
+
+
+
+turbulence=false
+turbulence_scaling=true
+L_inj=50
+#turbulence_rho_percentage=0.04
+#turbulence_B_percentage=0.01
+#turbulence_v_percentage=0.01
+Tfloor=1e2
+Nneg=5000
+m_cutoff=10
+
+

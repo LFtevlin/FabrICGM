@@ -1,0 +1,47 @@
+name=variance_1e12_HD
+
+M200=1e12
+#boxsize=600
+z=0
+
+create_random_galaxy_catalogue=false
+validate_galaxies=true
+allow_variance=true
+
+
+variance_Rgas=1.1
+variance_Rstar=1.1
+variance_Hgas=1.1
+variance_Hstar=1.1
+variance_Mgas=1.1
+variance_Mstellar=1.1
+variance_Z0=1.1
+variance_concentration=1.1
+variance_Mdot=1.1
+variance_Rsonic=3.0
+
+
+concentration=8.3
+Mstellar=5e10
+Mgas=3e10
+Rgas=5.5
+Hgas=1.
+Rstar=2.3
+Hstar=0.4
+Mdot=3.
+Rsonic=2.0
+Z0=1.
+
+Z_profile=powerlaw
+# options:
+# constant
+# powerlaw
+Z_slope=-0.6
+
+BulgeFraction=0.2
+BulgeScaleLength=0.1
+
+strict_integration=true
+tolerance=5e-1
+runtime=40.;
+
