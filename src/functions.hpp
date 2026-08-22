@@ -44,7 +44,7 @@ double interp_linear(const std::vector<double>& x, const std::vector<double>& y,
 
 void derivatives(double T, double rho, double v, double M, double r, double Z, double z, CoolingTable& cooling, double& dvdr, double& dTdr);
 
-double compute_dMCGM(double dr, double rho);
+double compute_dMCGM(double r_curr, double dr, double rho);
 
 std::pair<double,double> RK4_step(double r_curr, double T, double rho, double v, const std::vector<double>& M, const std::vector<double>& r, double dr, double M_dot, const std::vector<double>& Z_CGM, double z, CoolingTable& cooling);
 

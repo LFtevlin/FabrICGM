@@ -62,5 +62,6 @@ private:
     double epsilon = MACH_INIT * MACH_INIT - 1;
     void print_initial_conditions() const;
     void write_catalogue_result(bool reached_Rmax);
+    void update_CGM_mass(size_t i, double r_curr, double dr, double rho);
     void compute_CGM_mass();
 };

@@ -161,51 +161,55 @@ void Simulation::write_catalogue_result(bool reached_Rmax)
     std::cout << std::endl;
 }
 
+void Simulation::update_CGM_mass(size_t i, double r_curr, double dr, double rho)
+{
+    double dM_CGM = compute_dMCGM(r_curr, dr, rho);
+
+    if(i == 0)
+        M_CGM[i] = dM_CGM;
+    else
+        M_CGM[i] = M_CGM[i - 1] + dM_CGM;
+}
+
 void Simulation::compute_CGM_mass()
 {
-    double M_R200 = 0.0;
-    double M_Rmax = 0.0;
-    int N = radius.size();
-    M_CGM.resize(N);
-    for(size_t i = sonic_index; i < radius.size() - 1; i++)
+    Mcgm_R200 = 0.0;
+    Mcgm_Rmax = 0.0;
+
+    for(size_t i = 0; i < radius.size() - 1; i++)
     {
         double r1 = radius[i];
         double r2 = radius[i + 1];
-        double rho1 = density[i];
-        double rho2 = density[i + 1];
-        double integrand1 = 4.0*M_PI*r1*r1*rho1;
-        double integrand2 = 4.0*M_PI*r2*r2*rho2;
-        if(r1 < halo->R200)
+
+        double M1 = M_CGM[i];
+        double M2 = M_CGM[i + 1];
+
+        if(r1 <= halo->R200 && halo->R200 <= r2)
         {
-            double r2_use = std::min(r2, halo->R200);
-            double f = (r2_use - r1)/(r2 - r1);
-            double integrand2_use = integrand1 + f*(integrand2 - integrand1);
-            M_R200 += 0.5*(integrand1 + integrand2_use)*(r2_use - r1);
+            double f = (halo->R200 - r1) / (r2 - r1);
+            Mcgm_R200 = M1 + f * (M2 - M1);
         }
-        if(r1 >= halo->R200)
+
+        if(r1 <= Rmax && Rmax <= r2)
         {
-            Mcgm_R200 = M_R200;
-        }
-        if(r1 < Rmax)
-        {
-            double r2_use = std::min(r2, Rmax);
-            double f = (r2_use - r1)/(r2 - r1);
-            double integrand2_use = integrand1 + f*(integrand2 - integrand1);
-            M_Rmax += 0.5*(integrand1 + integrand2_use)*(r2_use - r1);
-            M_CGM[i] = M_Rmax;
-        }
-        if(r1 >= Rmax)
-        {
-            Mcgm_Rmax = M_Rmax;
-            break;
+            double f = (Rmax - r1) / (r2 - r1);
+            Mcgm_Rmax = M1 + f * (M2 - M1);
         }
     }
-    if(!std::isfinite(M_R200))
+
+    if(!std::isfinite(Mcgm_R200) || !std::isfinite(Mcgm_Rmax))
     {
-        logfile << "\n===== CGM Mass =====\n" << "Computed mass is NaN or Inf.\n" << "====================\n";
+        logfile << "\n===== CGM Mass =====\n"
+                << "Computed mass is NaN or Inf.\n"
+                << "====================\n";
+
         throw std::runtime_error("Computed CGM mass is not finite.");
     }
-    logfile << "\n===== CGM Mass =====\n" << "MCGM(<R200) = " << M_R200/Msun_to_g << " Msun\n" << "====================\n";
+
+    logfile << "\n===== CGM Mass =====\n"
+            << "MCGM(<R200) = " << Mcgm_R200 / Msun_to_g << " Msun\n"
+            << "MCGM(<Rmax) = " << Mcgm_Rmax / Msun_to_g << " Msun\n"
+            << "====================\n";
 }
 
 
@@ -217,6 +221,7 @@ void Simulation::integrate()
     temperature.resize(N);
     density.resize(N);
     Lambda_fctn.resize(N);
+    M_CGM.assign(N, 0.0);
     auto reset_solution = [&]()
     {
         std::fill(Lambda_fctn.begin(), Lambda_fctn.end(), 0.0);
@@ -293,10 +298,14 @@ void Simulation::integrate()
         }
         try
         {
-            auto result = RK4(r, T, rho, v, M_total, radius, dr_list[idx], params.galaxy.Mdot, Z, params.z, cooling, params.tolerance, max_iter);
+            update_CGM_mass(idx, r, dr_list[idx], density[idx]);
+            std::vector<double> M_total_with_CGM = M_total;
+            M_total_with_CGM[idx] += M_CGM[idx];
+            auto result = RK4(r, T, rho, v, M_total_with_CGM, radius, dr_list[idx], params.galaxy.Mdot, Z, params.z, cooling, params.tolerance, max_iter);
             velocity[idx+1] = result.first;
             temperature[idx+1] = result.second;
             density[idx+1] = params.galaxy.Mdot/(4.0*M_PI*radius[idx+1]*radius[idx+1]*(-velocity[idx+1]));
+            
         }
         catch(const std::exception& e)
         {
