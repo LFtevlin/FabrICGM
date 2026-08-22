@@ -13,6 +13,7 @@ struct SampledPositions
     std::vector<double> rho;
     std::vector<double> P;
     std::vector<double> T;
+    std::vector<double> V;
 
     std::vector<std::array<double,3>> v;
     std::vector<std::array<double,3>> B;

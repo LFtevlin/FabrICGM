@@ -490,6 +490,30 @@ void Simulation::convert_1D_to_3D()
         }
     }
     std::cerr << "Interpolated on cartesian grid \n";
+    gas.V.resize(gas.x.size());
+    for(size_t i = 0; i < gas.x.size(); i++)
+    {
+        double r = std::sqrt( gas.x[i] * gas.x[i] + gas.y[i] * gas.y[i] + gas.z[i] * gas.z[i]);
+        double dx_local = 0.0;
+        for(size_t b = 0; b < params.LBox.size(); b++)
+        {
+            if(r < params.LBox[b])
+            {
+                dx_local = params.dx[b];
+                break;
+            }
+        }
+        double V_cart = dx_local * dx_local * dx_local;
+        if(params.sampling == "equalmass")
+            gas.V[i] = params.mtarget / gas.rho[i];
+        else if(params.sampling == "cartesian")
+            gas.V[i] = V_cart;
+        else if(params.sampling == "both")
+            gas.V[i] = std::min(
+                params.mtarget / gas.rho[i],
+                V_cart
+            );
+    }
     logfile << "1D to 3D conversion done.\n";
 }
 
