@@ -181,7 +181,6 @@ void Simulation::compute_CGM_mass()
             double f = (r2_use - r1)/(r2 - r1);
             double integrand2_use = integrand1 + f*(integrand2 - integrand1);
             M_R200 += 0.5*(integrand1 + integrand2_use)*(r2_use - r1);
-            M_CGM[i] = M_R200;
         }
         if(r1 >= halo->R200)
         {
@@ -193,6 +192,7 @@ void Simulation::compute_CGM_mass()
             double f = (r2_use - r1)/(r2 - r1);
             double integrand2_use = integrand1 + f*(integrand2 - integrand1);
             M_Rmax += 0.5*(integrand1 + integrand2_use)*(r2_use - r1);
+            M_CGM[i] = M_Rmax;
         }
         if(r1 >= Rmax)
         {
