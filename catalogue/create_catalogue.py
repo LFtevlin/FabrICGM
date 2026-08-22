@@ -457,12 +457,12 @@ ax.set_ylabel(r"$Z_0/\mathrm{Z}_\odot$")
 
 
 plt.tight_layout()
-plt.savefig('./catalogue.pdf')
+plt.savefig('./catalogue/catalogue.pdf')
 
 import h5py
 
 
-filename = "./galaxy_catalogue.hdf5"
+filename = "./catalogue/galaxy_catalogue.hdf5"
 
 
 
