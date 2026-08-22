@@ -270,9 +270,9 @@ void derivatives(double T, double rho, double v, double M, double r, double Z, d
     dTdr = dlnT * T / r;
 }
 
-double compute_dMCGM(double dr, double rho)
+double compute_dMCGM(double r_curr, double dr, double rho)
 {
-    double integrand1 = 4.0 * M_PI * dr * dr * rho;
+    double integrand1 = 4.0 * M_PI * r_curr * r_curr * dr * rho;
     return integrand1;
 }
 
@@ -291,7 +291,7 @@ std::pair<double,double> RK4_step(double r_curr, double T, double rho, double v,
     }
     double v_mid = v + 0.5 * k1v * dr;
     double rho_mid = M_dot / (4.0 * M_PI * r_mid * r_mid * std::abs(v_mid));
-    double M_CGMmid = compute_dMCGM(0.5 * dr, rho_mid);
+    double M_CGMmid = compute_dMCGM(r_curr, 0.5 * dr, rho_mid);
     double M_mid = interp_linear(r, M, r_mid) + M_CGMmid;
     double Z_mid = interp_linear(r, Z_CGM, r_mid);
     double k2v, k2T;
@@ -313,7 +313,7 @@ std::pair<double,double> RK4_step(double r_curr, double T, double rho, double v,
     }
     double v_end = v + k3v * dr;
     double rho_end = M_dot / (4.0 * M_PI * r_end * r_end * std::abs(v_end));
-    double M_CGMend = compute_dMCGM(dr, rho_end);
+    double M_CGMend = compute_dMCGM(r_curr, dr, rho_end);
     double M_end = interp_linear(r, M, r_end) + M_CGMend;
     double Z_end = interp_linear(r, Z_CGM, r_end);
     double k4v, k4T;
