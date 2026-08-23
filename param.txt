@@ -2,7 +2,7 @@ name=paper
 
 M200=1.0e12
 #boxsize=600
-z=0.0
+z=2.0
 
 create_random_galaxy_catalogue=true
 validate_galaxies=false
@@ -45,26 +45,24 @@ runtime=60.;
 
 magnetic=true
 #Rcmax = 
-sampling=equalmass #or cartesian or equalmass, both
-mtarget=1e5
-#NBox=3
-#LBox1=200
-#dx1=2
-#LBox2=500
-#dx2=5
-#LBox3=5000
-#dx3=50
+sampling=cartesian #or cartesian or equalmass, both
+mtarget=5e4
+NBox=2
+LBox1=1000
+dx1=10
+LBox2=2000
+dx2=20
 
 
 
-turbulence=false
+turbulence=true
 turbulence_scaling=true
 L_inj=50
 #turbulence_rho_percentage=0.04
 #turbulence_B_percentage=0.01
 #turbulence_v_percentage=0.01
 Tfloor=1e2
-Nneg=5000
-m_cutoff=10
+Nneg=100
+m_cutoff=0
 
 

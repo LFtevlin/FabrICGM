@@ -1,8 +1,8 @@
-name=variance_test_catalogue_1e12_ZH
+name=variance_test_catalogue_1e10_ZH
 
-M200=1e12
+M200=1e10
 #boxsize=600
-z=2
+z=0
 
 create_random_galaxy_catalogue=true
 validate_galaxies=true
@@ -14,14 +14,14 @@ variance_Rstar=1.1
 variance_Hgas=1.1
 variance_Hstar=1.1
 variance_Mgas=1.1
-variance_Mstellar=1.1
-variance_Z0=1.1
+variance_Mstar=1.1
+variance_Z0=3.1
 variance_concentration=1.1
-variance_Mdot=1.1
-variance_Rsonic=2.
+variance_Mdot=10.1
+variance_Rsonic=3.
 
 concentration=14.0
-Mstellar=5e7
+Mstar=5e7
 Mgas=8e7
 Rgas=1.0
 Hgas=0.5
