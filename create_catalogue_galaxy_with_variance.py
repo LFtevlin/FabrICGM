@@ -18,7 +18,7 @@ def run_validation_simulation():
         tmp.flush()
 
         proc = subprocess.run(
-            ["./CGMake", tmp.name, cooling_file],
+            ["./FabriCGM", tmp.name, cooling_file],
             capture_output=True,
             text=True,
         )
@@ -123,7 +123,7 @@ with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=True) as tmp:
     tmp.flush()
 
     proc = subprocess.run(
-        ["./CGMake", tmp.name, cooling_file],
+        ["./FabriCGM", tmp.name, cooling_file],
         capture_output=True,
         text=True,
     )

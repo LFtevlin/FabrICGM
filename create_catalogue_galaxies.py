@@ -30,7 +30,7 @@ def run_simulation(job):
 
         try:
             proc = subprocess.run(
-                ["./CGMake", tmp.name, cooling_file],
+                ["./FabriCGM", tmp.name, cooling_file],
                 capture_output=True,
                 text=True,
                 timeout=150

@@ -25,7 +25,7 @@ SOURCES := src/main.cpp src/simulation.cpp src/cooling.cpp src/parameters.cpp sr
 
 OBJECTS := $(SOURCES:.cpp=.o)
 
-TARGET := CGMake
+TARGET := FabriCGM
 
 all: check $(TARGET)
 
