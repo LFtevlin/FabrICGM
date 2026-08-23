@@ -493,11 +493,12 @@ void Simulation::convert_1D_to_3D()
     gas.V.resize(gas.x.size());
     for(size_t i = 0; i < gas.x.size(); i++)
     {
-        double r = std::sqrt( gas.x[i] * gas.x[i] + gas.y[i] * gas.y[i] + gas.z[i] * gas.z[i]);
         double dx_local = 0.0;
-        for(size_t b = 0; b < params.LBox.size(); b++)
+        for (size_t b = 0; b < params.LBox.size(); b++)
         {
-            if(r < params.LBox[b])
+            if (std::abs(gas.x[i]) < params.LBox[b] / 2.0 &&
+                std::abs(gas.y[i]) < params.LBox[b] / 2.0 &&
+                std::abs(gas.z[i]) < params.LBox[b] / 2.0)
             {
                 dx_local = params.dx[b];
                 break;
@@ -509,10 +510,7 @@ void Simulation::convert_1D_to_3D()
         else if(params.sampling == "cartesian")
             gas.V[i] = V_cart;
         else if(params.sampling == "both")
-            gas.V[i] = std::min(
-                params.mtarget / gas.rho[i],
-                V_cart
-            );
+            gas.V[i] = std::min(params.mtarget / gas.rho[i],V_cart);
     }
     logfile << "1D to 3D conversion done.\n";
 }
@@ -719,7 +717,8 @@ void Simulation::normalize_turbulence()
     const double sigma_vy = calculate_sigma(vy);
     const double sigma_vz = calculate_sigma(vz);
 
-    const double sigma_v = std::sqrt((sigma_vx * sigma_vx + sigma_vy * sigma_vy + sigma_vz * sigma_vz) / 3.0);
+    const double sigma_v = std::sqrt((sigma_vx * sigma_vx + sigma_vy * sigma_vy + sigma_vz * sigma_vz)/3.0);
+    //const double sigma_v = std::sqrt((sigma_vx * sigma_vx));
 
     double sigma_B = 0.0;
 
@@ -802,7 +801,7 @@ void Simulation::normalize_turbulence()
 
         if (sigma_v > 0.0)
         {
-            const double factor = std::sqrt(2.0 * params.turbulence_v_percentage * thermal_energy_density[i] / (3.0 * gas.rho[i] * sigma_v * sigma_v));
+            const double factor = std::sqrt(2 * params.turbulence_v_percentage * thermal_energy_density[i] / (3*gas.rho[i] * sigma_v * sigma_v));
 
             turbulence.v[i][0] *= factor;
             turbulence.v[i][1] *= factor;
@@ -875,6 +874,7 @@ void Simulation::add_turbulence_to_gas()
 
         gas.T[i] = T_tot;
         gas.rho[i] = rho_tot;
+        gas.P[i] = (GAMMA - 1.0) * rho_tot * u_tot;
 
         gas.v[i][0] += turbulence.v[i][0];
         gas.v[i][1] += turbulence.v[i][1];
@@ -1173,6 +1173,23 @@ void Simulation::save_3D(
 
         dataset.write(
             T.data(),
+            PredType::NATIVE_DOUBLE
+        );
+    }
+
+    if(!sample.V.empty())
+    {
+        hsize_t dims[1] = {N};
+        DataSpace space(1, dims);
+
+        DataSet dataset = file.createDataSet(
+            "Volume",
+            PredType::NATIVE_DOUBLE,
+            space
+        );
+
+        dataset.write(
+            sample.V.data(),
             PredType::NATIVE_DOUBLE
         );
     }

@@ -457,6 +457,7 @@ double calculate_sigma(const std::vector<double>& values)
 
     mean /= static_cast<double>(values.size());
 
+
     double variance = 0.0;
 
     for (double x : values)
