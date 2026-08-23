@@ -510,8 +510,15 @@ void Simulation::convert_1D_to_3D()
         else if(params.sampling == "cartesian")
             gas.V[i] = V_cart;
         else if(params.sampling == "both")
-            gas.V[i] = std::min(params.mtarget / gas.rho[i],V_cart);
+           gas.V[i] = std::min(params.mtarget / gas.rho[i],V_cart);
     }
+    gas.Z.resize(gas.x.size());
+    for(size_t i = 0; i < gas.x.size(); i++)
+    {
+        double r = std::sqrt(gas.z[i]*gas.z[i] + gas.y[i]*gas.y[i] + gas.x[i]*gas.x[i]);
+        gas.Z[i] = interpolate(r, radius, Z);
+    }
+    
     logfile << "1D to 3D conversion done.\n";
 }
 
@@ -648,7 +655,6 @@ void Simulation::create_nested_turbulent_boxes()
         box_on_gas.rho.resize(N_gas, 0.0);
         box_on_gas.T.resize(N_gas, 0.0);
         interpolate_turbulence(box, box_on_gas);
-        save_3D(box_on_gas, "box_" + std::to_string(i) + ".hdf5");
         for(size_t n = 0; n < N_gas; n++)
         {
             turbulence.rho[n] += box_on_gas.rho[n];
@@ -662,7 +668,6 @@ void Simulation::create_nested_turbulent_boxes()
                 turbulence.B[n][2] += box_on_gas.B[n][2];
             }
         }
-        save_3D(turbulence, "turbulence_" + std::to_string(i) + ".hdf5");
         logfile << "Added turbulence from box " << i + 1 << "\n";
     }
 }
@@ -843,7 +848,6 @@ void Simulation::normalize_turbulence()
 
 void Simulation::add_turbulence_to_gas()
 {
-    save_3D(gas, "gas_before_adding.hdf5");
     const size_t N = gas.x.size();
 
     if (N == 0)
@@ -888,7 +892,6 @@ void Simulation::add_turbulence_to_gas()
         }
     }
 
-    save_3D(gas, "gas_after_adding.hdf5");
     logfile << "Added turbulence to gas fields\n";
 }
 
@@ -941,13 +944,12 @@ void Simulation::run()
 
         std::cerr << "created nested turbulent boxes \n";
 
-        save_3D(turbulence, "turbulence_after_nestedBoxes.hdf5");
 
         normalize_turbulence();
 
         std::cerr << "normalized turbulence \n";
 
-        save_3D(turbulence, "turbulence_after_normalization.hdf5");
+        //save_3D(turbulence, "./output/turbulence_" + params.name + ".hdf5");
 
         add_turbulence_to_gas();
 
@@ -1133,6 +1135,22 @@ void Simulation::save_3D(
 
         dataset.write(
             sample.rho.data(),
+            PredType::NATIVE_DOUBLE
+        );
+    }
+
+    {
+        hsize_t dims[1] = {N};
+        DataSpace space(1, dims);
+
+        DataSet dataset = file.createDataSet(
+            "Metallicity",
+            PredType::NATIVE_DOUBLE,
+            space
+        );
+
+        dataset.write(
+            sample.Z.data(),
             PredType::NATIVE_DOUBLE
         );
     }
