@@ -339,56 +339,163 @@ int CoolingTable::find_nearest(const std::vector<double>& array, double value)
 // }
 
 
+struct InterpIndex
+{
+    int i0;
+    int i1;
+    double f;
+};
 
+InterpIndex get_interp_index(const std::vector<double>& table, double x)
+{
+    if (x <= table.front())
+        return {0, 0, 0.0};
+
+    if (x >= table.back())
+    {
+        int i = table.size() - 1;
+        return {i, i, 0.0};
+    }
+
+    auto it = std::lower_bound(table.begin(), table.end(), x);
+    int i1 = std::distance(table.begin(), it);
+    int i0 = i1 - 1;
+
+    double f = (x - table[i0]) / (table[i1] - table[i0]);
+
+    return {i0, i1, f};
+}
+
+double interp4D(
+    const std::vector<double>& table,
+    int i0z, int i1z, double fz,
+    int i0T, int i1T, double fT,
+    int i0Z, int i1Z, double fZ,
+    int i0n, int i1n, double fn,
+    int species,
+    int NT, int NZ, int Nn, int Ns,
+    const std::function<size_t(int,int,int,int,int)>& index)
+{
+    double result = 0.0;
+
+    for (int az = 0; az <= 1; az++)
+    {
+        double wz = az ? fz : (1.0 - fz);
+        int iz = az ? i1z : i0z;
+
+        for (int aT = 0; aT <= 1; aT++)
+        {
+            double wT = aT ? fT : (1.0 - fT);
+            int iT = aT ? i1T : i0T;
+
+            for (int aZ = 0; aZ <= 1; aZ++)
+            {
+                double wZ = aZ ? fZ : (1.0 - fZ);
+                int iZ = aZ ? i1Z : i0Z;
+
+                for (int an = 0; an <= 1; an++)
+                {
+                    double wn = an ? fn : (1.0 - fn);
+                    int in = an ? i1n : i0n;
+
+                    result += wz * wT * wZ * wn
+                            * table[index(iz, iT, iZ, in, species)];
+                }
+            }
+        }
+    }
+
+    return result;
+}
 
 
 CoolingTable::CoolingTable(const std::string& filename)
 {
     H5::H5File file(filename, H5F_ACC_RDONLY);
-    auto density_log = read_1D_dataset(file, "TableBins/DensityBins");
-    for(auto x : density_log) nH_tab.push_back(pow(10.0, x));
-    auto temp_log = read_1D_dataset(file, "TableBins/TemperatureBins");
-    for(auto x : temp_log) T_tab.push_back(pow(10.0, x));
-    auto Z_log = read_1D_dataset(file, "TableBins/MetallicityBins");
-    for(auto x : Z_log) Z_tab.push_back(pow(10.0, x));
+
+    nH_tab = read_1D_dataset(file, "TableBins/DensityBins");
+    T_tab  = read_1D_dataset(file, "TableBins/TemperatureBins");
+    Z_tab  = read_1D_dataset(file, "TableBins/MetallicityBins");
+
     z_tab = read_1D_dataset(file, "TableBins/RedshiftBins");
     cooling = read_nd_dataset(file, "Tdep/Cooling", cooling_shape);
     heating = read_nd_dataset(file, "Tdep/Heating", heating_shape);
+
     auto cool_ids = read_string_dataset(file, "IdentifierCooling");
     auto heat_ids = read_string_dataset(file, "IdentifierHeating");
+
     for(int i = 0; i < cool_ids.size(); i++)
     {
-        if(cool_ids[i].find("TotalPrim") != std::string::npos) cool_TotalPrim = i;
-        if(cool_ids[i].find("TotalMetal") != std::string::npos) cool_TotalMetal = i;
+        if(cool_ids[i].find("TotalPrim") != std::string::npos)
+            cool_TotalPrim = i;
+
+        if(cool_ids[i].find("TotalMetal") != std::string::npos)
+            cool_TotalMetal = i;
     }
+
     for(int i = 0; i < heat_ids.size(); i++)
     {
-        if(heat_ids[i].find("TotalPrim") != std::string::npos) heat_TotalPrim = i;
-        if(heat_ids[i].find("TotalMetal") != std::string::npos) heat_TotalMetal = i;
+        if(heat_ids[i].find("TotalPrim") != std::string::npos)
+            heat_TotalPrim = i;
+
+        if(heat_ids[i].find("TotalMetal") != std::string::npos)
+            heat_TotalMetal = i;
     }
 }
+
 
 double CoolingTable::Lambda(double rho, double T, double Z, double z)
 {
     if(cool_TotalPrim < 0 || cool_TotalMetal < 0 || heat_TotalPrim < 0 || heat_TotalMetal < 0)
-    {
         throw std::runtime_error("Cooling identifiers not found");
-    }
-    int idz = find_nearest(z_tab, z);
+
     double nH = rho / (mu * m_p) * 0.76;
-    int idx = find_nearest(nH_tab, nH);
-    int idT = find_nearest(T_tab, T);
-    int idZ = find_nearest(Z_tab, Z);
-    int Nz = cooling_shape[0];
-    int NT = cooling_shape[1];
-    int NZ = cooling_shape[2];
-    int Nn = cooling_shape[3];
-    int Ns = cooling_shape[4];
-    auto index = [&](int iz, int iT, int iZ, int in, int ispecies)
+    double log_nH = std::log10(nH), log_T = std::log10(T), log_Z = std::log10(Z);
+    InterpIndex iz = get_interp_index(z_tab, z), in = get_interp_index(nH_tab, log_nH), iT = get_interp_index(T_tab, log_T), iZ = get_interp_index(Z_tab, log_Z);
+    int NT = cooling_shape[1], NZ = cooling_shape[2], Nn = cooling_shape[3], Ns = cooling_shape[4];
+
+    auto index = [&](int iz_, int iT_, int iZ_, int in_, int ispecies)
     {
-        return ((((iz * NT + iT) * NZ + iZ) * Nn + in) * Ns + ispecies);
+        return ((((iz_ * NT + iT_) * NZ + iZ_) * Nn + in_) * Ns + ispecies);
     };
-    double cool_value = pow(10.0, cooling[index(idz, idT, idZ, idx, cool_TotalPrim)]) + pow(10.0, cooling[index(idz, idT, idZ, idx, cool_TotalMetal)]);
-    double heat_value = pow(10.0, heating[index(idz, idT, idZ, idx, heat_TotalPrim)]) + pow(10.0, heating[index(idz, idT, idZ, idx, heat_TotalMetal)]);
+
+    auto interpolate = [&](const std::vector<double>& table, int species)
+    {
+        double result = 0.0;
+
+        for(int az = 0; az <= 1; az++)
+        {
+            int iz_ = az ? iz.i1 : iz.i0;
+            double wz = az ? iz.f : 1.0 - iz.f;
+
+            for(int aT = 0; aT <= 1; aT++)
+            {
+                int iT_ = aT ? iT.i1 : iT.i0;
+                double wT = aT ? iT.f : 1.0 - iT.f;
+
+                for(int aZ = 0; aZ <= 1; aZ++)
+                {
+                    int iZ_ = aZ ? iZ.i1 : iZ.i0;
+                    double wZ = aZ ? iZ.f : 1.0 - iZ.f;
+
+                    for(int an = 0; an <= 1; an++)
+                    {
+                        int in_ = an ? in.i1 : in.i0;
+                        double wn = an ? in.f : 1.0 - in.f;
+                        double weight = wz * wT * wZ * wn;
+                        result += weight * table[index(iz_, iT_, iZ_, in_, species)];
+                    }
+                }
+            }
+        }
+
+        return result;
+    };
+
+    double log_cool_prim = interpolate(cooling, cool_TotalPrim), log_cool_metal = interpolate(cooling, cool_TotalMetal);
+    double log_heat_prim = interpolate(heating, heat_TotalPrim), log_heat_metal = interpolate(heating, heat_TotalMetal);
+    double cool_value = std::pow(10.0, log_cool_prim) + std::pow(10.0, log_cool_metal);
+    double heat_value = std::pow(10.0, log_heat_prim) + std::pow(10.0, log_heat_metal);
+
     return cool_value - heat_value;
 }
