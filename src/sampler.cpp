@@ -221,7 +221,7 @@ SampledPositions sample_equal_mass(const std::vector<std::vector<double>>& gas_d
 double jitter(double center, double dx, std::mt19937& rng, double strength=0.5
 )
 {
-    std::uniform_real_distribution<double> dist(-0.5,0.5);
+    std::uniform_real_distribution<double> dist(-0.1,0.1);
 
     return center + dist(rng)*dx*strength;
 }
@@ -241,7 +241,7 @@ SampledPositions sample_cartesian(const std::vector<double>& LBox, const std::ve
         double L = LBox[b];
         double cell = dx[b];
         int N = static_cast<int>(L/cell);
-        int Ncell = N-1;
+        int Ncell = N;
         std::vector<int> counts(Ncell*Ncell*Ncell, 0);
         if(initial != nullptr)
         {
