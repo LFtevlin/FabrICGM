@@ -402,6 +402,28 @@ void Simulation::convert_1D_to_3D()
         gas.y.insert(gas.y.end(), cart.y.begin(), cart.y.end());
         gas.z.insert(gas.z.end(), cart.z.begin(), cart.z.end());
         std::cerr << "sampled cartesian boxes \n";
+        std::cerr << "outer x: "
+          << *std::min_element(gas.x.begin(), gas.x.end()) / kpc_to_cm
+          << " "
+          << *std::max_element(gas.x.begin(), gas.x.end()) / kpc_to_cm
+          << " kpc\n";
+    }
+    if (params.LBox.back() < 2*params.boxsize)
+    {
+        logfile << "Largest Cartesian box (" << params.LBox.back() << ") is smaller than boxsize (" << 2*params.boxsize << "). Adding outer Cartesian box with dmax = " << params.dmax << "\n";
+        std::vector<double> LBox_outer = {2*params.boxsize};
+        std::vector<double> dx_outer = {params.dmax};
+        SampledPositions outer = sample_cartesian(LBox_outer, dx_outer, &gas);
+        gas.x.insert(gas.x.end(), outer.x.begin(), outer.x.end());
+        gas.y.insert(gas.y.end(), outer.y.begin(), outer.y.end());
+        gas.z.insert(gas.z.end(), outer.z.begin(), outer.z.end());
+        logfile << "Added outer Cartesian box: LBox = " << 2*params.boxsize << ", dx = " << params.dmax << "\n";
+        std::cerr << "sampled outer Cartesian box\n";
+        std::cerr << "outer x: "
+          << *std::min_element(outer.x.begin(), outer.x.end()) / kpc_to_cm
+          << " "
+          << *std::max_element(outer.x.begin(), outer.x.end()) / kpc_to_cm
+          << " kpc\n";
     }
     double xmin = -params.boxsize;
     double xmax = params.boxsize;
@@ -1277,6 +1299,27 @@ void Simulation::save_3D(
             PredType::NATIVE_DOUBLE
         );
     }
+
+    auto write_attribute = [&](const std::string& name, double value)
+    {
+        H5::DataSpace space(H5S_SCALAR);
+        H5::Attribute attr = file.createAttribute(name, H5::PredType::NATIVE_DOUBLE, space);
+        attr.write(H5::PredType::NATIVE_DOUBLE, &value);
+    };
+
+    write_attribute("M200", params.M200);
+    write_attribute("R200", halo->R200);
+    write_attribute("boxsize", 2*params.boxsize);
+    write_attribute("concentration", params.galaxy.concentration);
+    write_attribute("redshift", params.z);
+    write_attribute("Mstar", params.galaxy.Mstellar);
+    write_attribute("Mgas", params.galaxy.Mgas);
+    write_attribute("Rgas", params.galaxy.Rgas);
+    write_attribute("Hgas", params.galaxy.Hgas);
+    write_attribute("Rstar", params.galaxy.Rstar);
+    write_attribute("Hstar", params.galaxy.Hstar);
+    write_attribute("Rsonic", params.galaxy.Rsonic);
+    write_attribute("Mdot", params.galaxy.Mdot);
 }
 
 

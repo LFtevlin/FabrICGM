@@ -47,5 +47,14 @@ int main(int argc, char** argv)
     if(result2 != 0)
         std::cerr << "Python plotting script failed\n";
 
+    std::string command = "python3 ./output/makeAREPOsnap.py ./output/solution3D_" + params.name + ".hdf5";
+
+    int ret = std::system(command.c_str());
+
+    if(ret != 0)
+    {
+        throw std::runtime_error("./output/makeAREPOsnap.py failed.");
+    }
+
     return 0;
 }

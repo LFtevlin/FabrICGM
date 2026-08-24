@@ -194,6 +194,8 @@ Parameters read_parameters(const std::string& filename)
                 }
             }
         }
+        else if(key == "dmax")
+            params.dmax = std::stod(value) * kpc_to_cm;
         else if(key == "turbulence")
             params.turbulence = (value == "true" || value == "1");
         else if(key == "turbulence_scaling")

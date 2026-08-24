@@ -78,6 +78,8 @@ struct Parameters
     std::vector<double> LBox;
     std::vector<double> dx;
 
+    double dmax = -1.0;
+
 
 
     double BulgeFraction = 0.0;
