@@ -56,5 +56,19 @@ int main(int argc, char** argv)
         throw std::runtime_error("./output/makeAREPOsnap.py failed.");
     }
 
+    if(params.turbulence)
+    {
+        std::string command = "python3 ./output/plot_turbulence.py " + params.name + " " + std::to_string(params.z);
+
+        int ret1 = std::system(command.c_str());
+
+        if(ret1 != 0)
+        {
+            throw std::runtime_error("./output/plot_turbulence.py failed.");
+        }
+
+    }
+
+    
     return 0;
 }

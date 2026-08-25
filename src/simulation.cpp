@@ -372,7 +372,6 @@ void Simulation::convert_1D_to_3D()
     std::vector<std::vector<double>> vr_grid(N_R, std::vector<double>(N_Z, 0.0));
     std::vector<std::vector<double>> vt_grid(N_R, std::vector<double>(N_Z, 0.0));
     std::vector<std::vector<double>> vp_grid(N_R, std::vector<double>(N_Z, 0.0));
-    std::cerr << "Expected Cartesian cells = " << N_R*N_Z << "\n";
     rho_2D(R_new, rho_new, Z_new, rho_grid, R_cmax);
     P_2D(R_new, P_new, Z_new, P_grid, R_cmax);
     vr_2D(R_new, v_new, Z_new, vr_grid, R_cmax);
@@ -402,11 +401,6 @@ void Simulation::convert_1D_to_3D()
         gas.y.insert(gas.y.end(), cart.y.begin(), cart.y.end());
         gas.z.insert(gas.z.end(), cart.z.begin(), cart.z.end());
         std::cerr << "sampled cartesian boxes \n";
-        std::cerr << "outer x: "
-          << *std::min_element(gas.x.begin(), gas.x.end()) / kpc_to_cm
-          << " "
-          << *std::max_element(gas.x.begin(), gas.x.end()) / kpc_to_cm
-          << " kpc\n";
     }
     if (params.LBox.back() < 2*params.boxsize)
     {
@@ -419,11 +413,6 @@ void Simulation::convert_1D_to_3D()
         gas.z.insert(gas.z.end(), outer.z.begin(), outer.z.end());
         logfile << "Added outer Cartesian box: LBox = " << 2*params.boxsize << ", dx = " << params.dmax << "\n";
         std::cerr << "sampled outer Cartesian box\n";
-        std::cerr << "outer x: "
-          << *std::min_element(outer.x.begin(), outer.x.end()) / kpc_to_cm
-          << " "
-          << *std::max_element(outer.x.begin(), outer.x.end()) / kpc_to_cm
-          << " kpc\n";
     }
     double xmin = -params.boxsize;
     double xmax = params.boxsize;
@@ -508,7 +497,7 @@ void Simulation::convert_1D_to_3D()
                 gas.B[i][0] = 0.0;
                 gas.B[i][1] = 0.0;
             }
-            gas.B[i][2] = B0_CGM*factor;
+            gas.B[i][2] = B0_CGM*factor/std::sqrt(3.0);
         }
     }
     std::cerr << "Interpolated on cartesian grid \n";
@@ -971,11 +960,12 @@ void Simulation::run()
 
         std::cerr << "normalized turbulence \n";
 
-        //save_3D(turbulence, "./output/turbulence_" + params.name + ".hdf5");
+        save_3D(turbulence, "./output/turbulence_" + params.name + ".hdf5");
 
         add_turbulence_to_gas();
 
         std::cerr << "added turbulence to gas \n";
+
     }
 
     logfile.close();
@@ -1161,6 +1151,7 @@ void Simulation::save_3D(
         );
     }
 
+    if(!sample.Z.empty())
     {
         hsize_t dims[1] = {N};
         DataSpace space(1, dims);

@@ -45,8 +45,20 @@ Velocity = Velocity_cgs / Unit_in_cm_per_s
 Density = Density_cgs / Unit_density
 Volume = Volume_cgs / Unit_in_cm**3
 
+mask = (
+    (Coordinates[:, 0] >= 0) & (Coordinates[:, 0] <= 2*boxsize) &
+    (Coordinates[:, 1] >= 0) & (Coordinates[:, 1] <= 2*boxsize) &
+    (Coordinates[:, 2] >= 0) & (Coordinates[:, 2] <= 2*boxsize)
+)
+
+Coordinates = Coordinates[mask]
+Velocity = Velocity[mask]
+Density = Density[mask]
+Volume = Volume[mask]
+
 Mass_cgs = Density_cgs * Volume_cgs
 Masses = Mass_cgs / (Unit_in_g)
+
 
 Utherm_cgs = k_B * Temperature / ((gamma - 1.0) * mu * m_p)
 Utherm = Utherm_cgs / Unit_in_cm_per_s**2
@@ -104,7 +116,7 @@ with h5py.File(OutputFileName, "w") as IC:
 
     part0.create_dataset(
         "Metallicity",
-        data=Metallicity/0.02
+        data=Metallicity[mask]/0.02
     )
 
     part0.create_dataset(
@@ -125,7 +137,7 @@ with h5py.File(OutputFileName, "w") as IC:
     if MagneticField is not None:
         part0.create_dataset(
             "MagneticField",
-            data=MagneticField
+            data=MagneticField[mask,:]
         )
 
 print(f"Saved AREPO snapshot: {OutputFileName}")

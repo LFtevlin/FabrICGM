@@ -197,8 +197,8 @@ out = filename.replace(".hdf5", "_profiles.png")
 
 fig.savefig(out, dpi=400, bbox_inches="tight")
 
-slice_thickness = 50 * un.kpc
-npix = 256
+slice_thickness = 300 * un.kpc
+npix = 100
 vector_npix = 15
 vector_slice = 5.0
 
