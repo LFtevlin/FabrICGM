@@ -59,6 +59,51 @@ Volume = Volume[mask]
 Mass_cgs = Density_cgs * Volume_cgs
 Masses = Mass_cgs / (Unit_in_g)
 
+## make PDFs
+mass_bins = np.logspace(
+    np.log10(Masses.min()),
+    np.log10(Masses.max()),
+    50
+)
+
+volume_bins = np.logspace(
+    np.log10(Volume.min()),
+    np.log10(Volume.max()),
+    50
+)
+
+import matplotlib.pyplot as plt 
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+# Mass PDF
+axes[0].hist(
+    Masses,
+    bins=mass_bins,
+    density=True
+)
+
+axes[0].set_xscale("log")
+axes[0].set_yscale("log")
+axes[0].set_xlabel(r"Cell mass [$10^{10}~M_\odot$]")
+axes[0].set_ylabel("PDF")
+axes[0].set_title("Cell Mass PDF")
+
+# Volume PDF
+axes[1].hist(
+    Volume,
+    bins=volume_bins,
+    density=True
+)
+
+axes[1].set_xscale("log")
+axes[1].set_yscale("log")
+axes[1].set_xlabel(r"Cell volume [$\mathrm{kpc}^3$]")
+axes[1].set_ylabel("PDF")
+axes[1].set_title("Cell Volume PDF")
+
+plt.savefig(InputFileName.replace(".hdf5", "_MV_PDF.pdf"))
+
 
 Utherm_cgs = k_B * Temperature / ((gamma - 1.0) * mu * m_p)
 Utherm = Utherm_cgs / Unit_in_cm_per_s**2

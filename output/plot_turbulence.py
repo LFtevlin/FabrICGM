@@ -54,7 +54,7 @@ with h5py.File(f"output/solution3D_{NAME}.hdf5", "r") as f:
     rho = f["Density"][()]
     Z = f["Metallicity"][()]
 
-with h5py.File("../cooling/UVB_dust1_CR1_G1_shield0.hdf5", "r") as f:
+with h5py.File("./cooling/UVB_dust1_CR1_G1_shield0.hdf5", "r") as f:
     cool = f["Tdep"]["Cooling"][()]
     heat = f["Tdep"]["Heating"][()]
     cool_ids = [x.decode().strip() for x in f["IdentifierCooling"][()]]
@@ -119,7 +119,7 @@ vmin2 = np.nanmin(projection2[finite2])
 vmax2 = np.nanmax(projection2[finite2])
 
 im2 = axes[1].imshow(projection2.T, origin="lower", extent=extent, aspect="equal", cmap="viridis",
-                     norm=LogNorm(vmin=vmin2, vmax=vmax2))
+                     norm = SymLogNorm(linthresh=1e-10, vmin=vmin2, vmax=vmax2))
 axes[1].set_xlabel("x [kpc]")
 axes[1].set_ylabel("y [kpc]")
 fig.colorbar(im2, orientation="horizontal", location="top", pad=0.08, ax=axes[1],
