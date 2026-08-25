@@ -396,22 +396,28 @@ void Simulation::convert_1D_to_3D()
     if(params.sampling == "cartesian" || params.sampling == "both")
     {
         logfile << "Using cartesian sampling\n";
-        SampledPositions cart = sample_cartesian(params.LBox, params.dx, &gas);
-        gas.x.insert(gas.x.end(), cart.x.begin(), cart.x.end());
-        gas.y.insert(gas.y.end(), cart.y.begin(), cart.y.end());
-        gas.z.insert(gas.z.end(), cart.z.begin(), cart.z.end());
+
+        gas = sample_cartesian(params.LBox, params.dx, &gas);
+
         std::cerr << "sampled cartesian boxes \n";
     }
-    if (params.LBox.back() < 2*params.boxsize)
+
+    if(params.LBox.back() < 2*params.boxsize)
     {
-        logfile << "Largest Cartesian box (" << params.LBox.back() << ") is smaller than boxsize (" << 2*params.boxsize << "). Adding outer Cartesian box with dmax = " << params.dmax << "\n";
+        logfile << "Largest Cartesian box (" << params.LBox.back()
+                << ") is smaller than boxsize (" << 2*params.boxsize
+                << "). Adding outer Cartesian box with dmax = "
+                << params.dmax << "\n";
+
         std::vector<double> LBox_outer = {2*params.boxsize};
         std::vector<double> dx_outer = {params.dmax};
-        SampledPositions outer = sample_cartesian(LBox_outer, dx_outer, &gas);
-        gas.x.insert(gas.x.end(), outer.x.begin(), outer.x.end());
-        gas.y.insert(gas.y.end(), outer.y.begin(), outer.y.end());
-        gas.z.insert(gas.z.end(), outer.z.begin(), outer.z.end());
-        logfile << "Added outer Cartesian box: LBox = " << 2*params.boxsize << ", dx = " << params.dmax << "\n";
+
+        gas = sample_cartesian(LBox_outer, dx_outer, &gas);
+
+        logfile << "Added outer Cartesian box: LBox = "
+                << 2*params.boxsize
+                << ", dx = " << params.dmax << "\n";
+
         std::cerr << "sampled outer Cartesian box\n";
     }
     double xmin = -params.boxsize;
@@ -504,7 +510,7 @@ void Simulation::convert_1D_to_3D()
     gas.V.resize(gas.x.size());
     for(size_t i = 0; i < gas.x.size(); i++)
     {
-        double dx_local = 0.0;
+        double dx_local = params.dmax;
         for (size_t b = 0; b < params.LBox.size(); b++)
         {
             if (std::abs(gas.x[i]) < params.LBox[b] / 2.0 &&

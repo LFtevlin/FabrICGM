@@ -243,18 +243,15 @@ SampledPositions sample_cartesian(const std::vector<double>& LBox, const std::ve
         int N = static_cast<int>(L/cell);
         int Ncell = N;
         std::vector<int> counts(Ncell*Ncell*Ncell, 0);
-        if(initial != nullptr)
+        for(size_t p = 0; p < result.x.size(); p++)
         {
-            for(size_t p = 0; p < result.x.size(); p++)
+            int ix = std::floor((result.x[p]+L/2.0)/cell);
+            int iy = std::floor((result.y[p]+L/2.0)/cell);
+            int iz = std::floor((result.z[p]+L/2.0)/cell);
+            if(ix >= 0 && ix < Ncell && iy >= 0 && iy < Ncell && iz >= 0 && iz < Ncell)
             {
-                int ix = std::floor((result.x[p]+L/2.0)/cell);
-                int iy = std::floor((result.y[p]+L/2.0)/cell);
-                int iz = std::floor((result.z[p]+L/2.0)/cell);
-                if(ix >= 0 && ix < Ncell && iy >= 0 && iy < Ncell && iz >= 0 && iz < Ncell)
-                {
-                    int id = ix*Ncell*Ncell + iy*Ncell + iz;
-                    counts[id]++;
-                }
+                int id = ix*Ncell*Ncell + iy*Ncell + iz;
+                counts[id]++;
             }
         }
         for(int ix = 0; ix < Ncell; ix++)
@@ -264,7 +261,7 @@ SampledPositions sample_cartesian(const std::vector<double>& LBox, const std::ve
                 for(int iz = 0; iz < Ncell; iz++)
                 {
                     int id = ix*Ncell*Ncell + iy*Ncell + iz;
-                    if(initial == nullptr || counts[id] == 0)
+                    if(counts[id] == 0)
                     {
                         double xc = -L/2.0 + (ix+0.5)*cell;
                         double yc = -L/2.0 + (iy+0.5)*cell;
