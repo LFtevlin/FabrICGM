@@ -74,7 +74,7 @@ If you want to create a user-defined galaxy, you need to do
 ```bash
 python create_galaxy_with_variance.py
 ```
-which creates a CGM using the user-defined galactic parameters and allowed variances specified in param-crv.txt
+which creates a CGM using the user-defined galactic parameters and allowed variances specified in param-cv.txt
 
 ### General Setup
 
@@ -114,7 +114,7 @@ constant
 powerlaw
 ```
 
-You only need to specify the galaxy properties, if create_random_galaxy_catalogue=false
+You only need to specify the galaxy properties, if create_random_galaxy_catalogue=false. If Rsonic is not set, it is assumed to lie within 2*Rgas.
 
 We recommend to not change these:
 | `BulgeFraction` | Fraction of stellar mass in the bulge | `0.2` |
@@ -224,5 +224,7 @@ Bug reports, suggestions, and contributions are welcome.
 Please open an issue or pull request on GitHub.
 
 Let me know if you are interested in writing a paper using this code, or have ideas o how to expand it. My ideas are: comparing different cooling modules, expanding the output from only AREPO to other codes, investigate equilibrium of mass accrettion vs. SFR for different GFMs, investigate connection between bursty accretion and bursty SF at high and low redshifts, ...
+
+tevlin@aip.de
 
 
