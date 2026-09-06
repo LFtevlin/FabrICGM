@@ -62,7 +62,19 @@ If you want to use your own cooling table, you should implement the readout in s
 ## 6. Input Parameters
 
 FabrICGM is controlled through a parameter file. The main parameters are
-described below.
+described below. 
+
+If you want to create a catatlogue galaxy, you need to do 
+```bash
+python create_catalogue_galaxy_with_variance.py
+```
+which creates a z,M200 dependent CGM using the halo mass, redshift, and allowed variances specified in param-crv.txt. Because not all input parameters yield valid solutions (for the PS2020 cooling table, rouhgly 1/3 of parameter combinations yield valid results), the python file resubmits simulations with different parameter combinations that are within the allowed variance until it finds a valid solution.
+
+If you want to create a user-defined galaxy, you need to do 
+```bash
+python create_galaxy_with_variance.py
+```
+which creates a CGM using the user-defined galactic parameters and allowed variances specified in param-crv.txt
 
 ### General Setup
 
@@ -76,6 +88,8 @@ described below.
 We recommend to not change these, but you can try:
 | `tolerance` | Numerical tolerance of the solver | `5e-1` |
 | `runtime` | Maximum runtime of the solver | `40.` |
+
+If boxsize is not specified it is set to 6 R200.
 
 ### Galaxy Properties
 
@@ -170,6 +184,8 @@ both
 
 The default version does not create turbulence, where none of these parameters need to be specified. If turbulence_scaling=true, the percentages are determined self-consistently to obey Nneg. Note that this calculates the cumulative error function, so that 0 is never reached. If m_cutoff is not set, it is set to 1. 
 
+The output are multiple verification plots inside output, as well as a 1D file containing the 1D solution, 3D file containing 3D solution with center at 0, and 3D AREPO file that can be directly used as AREPO ICs. All parameters needed for the simulation are specified in f['Header'].attrs.keys(). If you do not wich to create the arepo snapshot, you should comment out the relevant lines in src/main.cpp, or modify it to create whatever output format you need.
+
 ## Citation
 
 If you use FabrICGM in your research, please cite:
@@ -177,6 +193,30 @@ If you use FabrICGM in your research, please cite:
 > Tevlin et al. (2026), *FabrICGM: CGM ICs for Realistic Galaxies across Halo Mass and Redshift*
 
 This is not yet submitted unfortunately. If submitted, BibTex will be updated
+
+Use of FabrICGM without appropriate citation is not permitted. Any
+scientific work, publication, presentation, or other research output
+that uses initial conditions or results generated with FabrICGM should
+cite the associated publication.
+
+## AI-Assisted Development
+
+AI tools were used during the development of FabrICGM as a programming
+and debugging aid. In particular, AI assistance was used for:
+
+- debugging,
+- writing/improving interpolation functions,
+- writing plotting scripts,
+- writing the `Makefile`.
+
+The original implementation, scientific methodology, physical model,
+algorithmic choices, and all testing and validation were developed and
+performed by the author.
+
+All scientific results and code functionality were independently tested
+and verified by the author. AI tools were used only to assist with
+specific programming and debugging tasks and were not used to generate
+the original scientific implementation.
 
 ## Contributing
 
