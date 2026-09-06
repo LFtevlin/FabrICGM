@@ -1,0 +1,228 @@
+# FabrICGM
+
+FabrICGM is a Python/C++ code for generating hot, rotating, turbulent circumgalactic
+medium (CGM) initial conditions for galaxy simulations that expand on the work of Stern+ 2024.
+
+## Overview
+
+FabrICGM generates physically motivated CGM initial conditions for halos with
+
+- halo masses $M_{200} = 10^{10} - 10^{12.5}\,M_\odot$,
+- redshifts $z = 0 - 2$,
+- hot, rotating and turbulent gas,
+- a prescribed mass accretion rate.
+
+The generated CGM can be directly combined with galaxy/disk initial
+conditions and evolved with hydrodynamical simulations.
+
+## Features
+
+- Halo mass and redshift-dependent scaling parameters
+- Steady-state (several Gyrs) radial inflow 
+- optionally controlled turbulence
+- optionally magnetic fields
+- mostly C++
+- Python interface
+- Compatible with AREPO (until now ..., more additions are welcome)
+
+## Installation
+
+Clone the repository:
+
+```bash
+git clone https://github.com/LFtevlin/FabrICGM.git
+cd FabrICGM
+make clean
+make
+
+```
+
+It could be that you need to modify the Makefile and update library parts or compiler information. We also include an example Makefile for a cluster.
+HDF5 and FFTW are needed.
+
+Plotting files, as well as re-submit files are written in Python. We recommend to have a conda environment.
+
+
+## 5. Quick start
+
+```markdown
+## Quick Start
+
+A basic CGM can be generated with:
+
+./FabrICGM param.txt cooling/UVB_dust1_CR1_G1_shield0.hdf5
+
+```
+
+This will create a CGM with the parameters specified in param.txt. This CGM can be either simulated on its own or directly added to disk ICs , where the relevant paramters also need to be specified in param.txt.
+UVB_dust1_CR1_G1_shield0.hdf5 is the default cooling table of Ploeckinger&Schaye 2020 without H2 self-shielding that can be downloaded here:
+https://radcool.strw.leidenuniv.nl/
+If you want to use your own cooling table, you should implement the readout in src/cooling.cpp. Make sure that it is suitable for you halo mass and redshift!
+
+## 6. Input Parameters
+
+FabrICGM is controlled through a parameter file. The main parameters are
+described below. 
+
+If you want to create a catatlogue galaxy, you need to do 
+```bash
+python create_catalogue_galaxy_with_variance.py
+```
+which creates a z,M200 dependent CGM using the halo mass, redshift, and allowed variances specified in param-crv.txt. Because not all input parameters yield valid solutions (for the PS2020 cooling table, rouhgly 1/3 of parameter combinations yield valid results), the python file resubmits simulations with different parameter combinations that are within the allowed variance until it finds a valid solution.
+
+If you want to create a user-defined galaxy, you need to do 
+```bash
+python create_galaxy_with_variance.py
+```
+which creates a CGM using the user-defined galactic parameters and allowed variances specified in param-crv.txt
+
+### General Setup
+
+| Parameter | Description | Example |
+|---|---|---|
+| `name` | Name of the simulation | `1e12_z0` |
+| `M200` | Halo mass [$M_{200}$] | `1.0e12` |
+| `z` | Redshift | `0.0` |
+| `boxsize` | Size of the simulation box [kpc] | `600` |
+| `concentration` | Halo concentration | `8.0` |
+We recommend to not change these, but you can try:
+| `tolerance` | Numerical tolerance of the solver | `5e-1` |
+| `runtime` | Maximum runtime of the solver | `40.` |
+
+If boxsize is not specified it is set to 6 R200.
+
+### Galaxy Properties
+
+| Parameter | Description | Example |
+|---|---|---|
+| `Mstar` | Stellar mass [$M_{200}$] | `6e10` |
+| `Mgas` | Gas mass [$M_{200}$] | `4e10` |
+| `Rgas` | Gas radial scale length [kpc] | `5.0` |
+| `Hgas` | Gas vertical scale height [kpc] | `1.5` |
+| `Rstar` | Stellar radial scale length [kpc] | `2.0` |
+| `Hstar` | Stellar vertical scale height [kpc] | `0.5` |
+| `Mdot` | Radial gas mass accretion rate [$M_{200}/\mathrm{yr}$] | `15.` |
+| `Rsonic` | Sonic radius [kpc]  | `5.0` |
+| `Z0` | Central/ISM metallicity [solar metallicity] | `0.3` |
+| `Z_profile` | Radial metallicity profile | `powerlaw` |
+| `Z_slope` | Slope of the metallicity power law | `-0.6` |
+
+The available metallicity profiles are:
+
+```text
+constant
+powerlaw
+```
+
+You only need to specify the galaxy properties, if create_random_galaxy_catalogue=false
+
+We recommend to not change these:
+| `BulgeFraction` | Fraction of stellar mass in the bulge | `0.2` |
+| `BulgeScaleLength` | Bulge scale length [units of Rstar] | `0.1` |
+
+| Parameter                        | Description                              | Example |
+| -------------------------------- | ---------------------------------------- | ------- |
+| `create_random_galaxy_catalogue` | Create a random galaxy catalogue         | `false` |
+| `validate_galaxies`              | Make a print statement about the obtained parameters instead of running a full simulation | `false` |
+
+If create_random_galaxy_catalogue=true, all galaxy properties are ignored if specified. The galaxy properties are instead infered from a halo mass and redshift dependent parameter catalogue that is created inside ./catalogue
+
+| Parameter                | Description                                 | Example |
+| ------------------------ | ------------------------------------------- | ------- |
+| `allow_variance`         | Enable variations of the input parameters logarithmically uniformly sampled between 1/variance * paramter - variance * parameter  | `false` |
+| `variance_Rgas`          | Variation factor for `Rgas`                 | `1.5`   |
+| `variance_Rstar`         | Variation factor for `Rstar`                | `1.5`   |
+| `variance_Hgas`          | Variation factor for `Hgas`                 | `1.5`   |
+| `variance_Hstar`         | Variation factor for `Hstar`                | `1.5`   |
+| `variance_Mgas`          | Variation factor for `Mgas`                 | `2.0`   |
+| `variance_Mstar`         | Variation factor for `Mstar`                | `2.0`   |
+| `variance_Z0`            | Variation factor for `Z0`                   | `3.0`   |
+| `variance_concentration` | Variation factor for the halo concentration | `1.3`   |
+| `variance_Mdot`          | Variation factor for `Mdot`                 | `15.0`  |
+| `variance_Rsonic`        | Variation factor for `Rsonic`               | `3.0`   |
+
+You only need to specify these if allow_variance=true
+
+| Parameter  | Description                                 | Example |
+| ---------- | ------------------------------------------- | ------- |
+| `magnetic` | Include magnetic fields                     | `false` |
+
+If not specified, this is set to false
+
+
+| Parameter  | Description                                | Example     |
+| ---------- | ------------------------------------------ | ----------- |
+| `Rcmax`    | Maximum circulization radius, where v_phi = v_circ | —       |
+| `sampling` | Sampling method for the initial conditions | `both`      |
+| `mtarget`  | Target mass per sampling element           | `1e5`       |
+| `NBox`     | Number of nested cartesian sampling boxes            | `2`         |
+| `LBox1`    | Size of the first sampling box             | `200`       |
+| `dx1`      | Resolution of the first sampling box       | `2.`        |
+| `LBox2`    | Size of the second sampling box            | `500`       |
+| `dx2`      | Resolution of the second sampling box      | `3.`        |
+| `dmax`     | Maximum sampling distance                  | `20`        |
+
+You only need to specify dmax, if cartesian or both is enabled. Make sure to comment out the boxes if equalmass is enabled, and the target mass if cartesian is enabled.
+
+The sampling methods are :
+cartesian
+equalmass
+both
+
+| Parameter                   | Description                                 | Example |
+| --------------------------- | ------------------------------------------- | ------- |
+| `turbulence`                | Include turbulent fluctuations              | `false` |
+| `turbulence_scaling`        | Scale the turbulence to reach a specified number of negative cells            | `false` |
+| `L_inj`                     | Turbulence injection scale                  | `50`    |
+| `turbulence_rho_percentage` | Turbulent thermal energy fraction                  | `0.08`  |
+| `turbulence_B_percentage`   | Turbulent magnetic-field fraction           | `0.0`   |
+| `turbulence_v_percentage`   | Turbulent velocity fraction                 | `0.0`   |
+| `Tfloor`                    | Floor temperature                     | `1e2`   |
+| `Nneg`                      | Maximum number of negative cells | `1000`  |
+| `m_cutoff`                  | Turbulence cutoff parameter in units of normalized ellispoidal radius around the disk                  | `3`     |
+
+
+The default version does not create turbulence, where none of these parameters need to be specified. If turbulence_scaling=true, the percentages are determined self-consistently to obey Nneg. Note that this calculates the cumulative error function, so that 0 is never reached. If m_cutoff is not set, it is set to 1. 
+
+The output are multiple verification plots inside output, as well as a 1D file containing the 1D solution, 3D file containing 3D solution with center at 0, and 3D AREPO file that can be directly used as AREPO ICs. All parameters needed for the simulation are specified in f['Header'].attrs.keys(). If you do not wich to create the arepo snapshot, you should comment out the relevant lines in src/main.cpp, or modify it to create whatever output format you need.
+
+## Citation
+
+If you use FabrICGM in your research, please cite:
+
+> Tevlin et al. (2026), *FabrICGM: CGM ICs for Realistic Galaxies across Halo Mass and Redshift*
+
+This is not yet submitted unfortunately. If submitted, BibTex will be updated
+
+Use of FabrICGM without appropriate citation is not permitted. Any
+scientific work, publication, presentation, or other research output
+that uses initial conditions or results generated with FabrICGM should
+cite the associated publication.
+
+## AI-Assisted Development
+
+AI tools were used during the development of FabrICGM as a programming
+and debugging aid. In particular, AI assistance was used for:
+
+- debugging,
+- writing/improving interpolation functions,
+- writing plotting scripts,
+- writing the `Makefile`.
+
+The original implementation, scientific methodology, physical model,
+algorithmic choices, and all testing and validation were developed and
+performed by the author.
+
+All scientific results and code functionality were independently tested
+and verified by the author. AI tools were used only to assist with
+specific programming and debugging tasks and were not used to generate
+the original scientific implementation.
+
+## Contributing
+
+Bug reports, suggestions, and contributions are welcome.
+Please open an issue or pull request on GitHub.
+
+Let me know if you are interested in writing a paper using this code, or have ideas o how to expand it. My ideas are: comparing different cooling modules, expanding the output from only AREPO to other codes, investigate equilibrium of mass accrettion vs. SFR for different GFMs, investigate connection between bursty accretion and bursty SF at high and low redshifts, ...
+
+
