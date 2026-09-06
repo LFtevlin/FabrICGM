@@ -11,6 +11,10 @@
 // Cooling table: Ploeckinger&Schaye 2020 https://arxiv.org/pdf/2006.14322
 // heating and cooling are divided in 'total primodial' and 'total metal', both need to be added
 
+// If you want to use your own cooling table, you should implement it here. The unit of the lambda function is erg cm^3/s
+// You should make sure that the cooling table is suitable for the desired halo mass and redshift (especially CR ionization rates and ISRF ionization rates)
+// However, IF a solution can be found, the solution seems to differ not too much between different cooling prescriptions
+
 std::vector<double> read_1D_dataset(H5::H5File& file, const std::string& name)
 {
     H5::DataSet dataset = file.openDataSet(name);
@@ -338,6 +342,7 @@ int CoolingTable::find_nearest(const std::vector<double>& array, double value)
 //     return cool - heat;
 // }
 
+// We interpolate the 4D (Temperature, metallicity, hydrogen number density, redshift) to ensure a smooth transition
 
 struct InterpIndex
 {

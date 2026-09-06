@@ -1,0 +1,79 @@
+CXX := g++
+
+CXXFLAGS := -std=c++17 -O3 -Wall -Wextra
+
+
+HDF5_INC_DIR := $(HDF5_INC)
+HDF5_LIB_DIR := $(HDF5_LIB)
+
+ifeq ($(HDF5_INC_DIR),)
+$(error HDF5_INC not set. Load the HDF5 module first)
+endif
+
+ifeq ($(HDF5_LIB_DIR),)
+$(error HDF5_LIB not set. Load the HDF5 module first)
+endif
+
+
+CXXFLAGS += -I$(HDF5_INC_DIR)
+
+LDFLAGS += -L$(HDF5_LIB_DIR)
+
+LDLIBS += -lhdf5_cpp -lhdf5
+
+FFTW_DIR := $(FFTW_DIR)
+
+ifeq ($(FFTW_DIR),)
+$(error FFTW_DIR not set. Load the FFTW module first)
+endif
+
+FFTW_INC_DIR := $(FFTW_DIR)/include
+FFTW_LIB_DIR := $(FFTW_DIR)/lib
+
+CXXFLAGS += -I$(FFTW_INC_DIR)
+
+LDFLAGS += -L$(FFTW_LIB_DIR)
+
+LDLIBS += -lfftw3
+
+
+
+SOURCES := src/main.cpp src/simulation.cpp src/cooling.cpp src/parameters.cpp src/galaxy_catalogue.cpp src/turbulence.cpp src/functions.cpp src/sampler.cpp
+
+
+OBJECTS := $(SOURCES:.cpp=.o)
+
+
+TARGET := FabriCGM
+
+
+all: check $(TARGET)
+
+$(TARGET): $(OBJECTS)
+	$(CXX) $(OBJECTS) -o $(TARGET) $(LDFLAGS) $(LDLIBS)
+
+
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+
+
+check:
+	@echo "Checking compiler..."
+
+	@command -v $(CXX) >/dev/null || \
+		(echo "ERROR: g++ not found"; exit 1)
+
+	@echo "Using compiler:"
+	@$(CXX) --version | head -n 1
+
+	@echo ""
+	@echo "Found HDF5:"
+	@echo "Include: $(HDF5_INC_DIR)"
+	@echo "Library: $(HDF5_LIB_DIR)"
+
+
+
+clean:
+	rm -f $(OBJECTS)
+	rm -f $(TARGET)

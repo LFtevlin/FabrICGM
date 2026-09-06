@@ -161,7 +161,7 @@ with h5py.File(OutputFileName, "w") as IC:
 
     part0.create_dataset(
         "Metallicity",
-        data=Metallicity[mask]/0.02
+        data=Metallicity[mask]*0.02
     )
 
     part0.create_dataset(

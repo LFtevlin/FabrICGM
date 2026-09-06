@@ -402,23 +402,26 @@ void Simulation::convert_1D_to_3D()
         std::cerr << "sampled cartesian boxes \n";
     }
 
-    if(params.LBox.back() < 2*params.boxsize)
+    if(params.sampling == "cartesian" || params.sampling == "both")
     {
-        logfile << "Largest Cartesian box (" << params.LBox.back()
-                << ") is smaller than boxsize (" << 2*params.boxsize
-                << "). Adding outer Cartesian box with dmax = "
-                << params.dmax << "\n";
+        if(params.LBox.back() < 2*params.boxsize)
+        {
+            logfile << "Largest Cartesian box (" << params.LBox.back()
+                    << ") is smaller than boxsize (" << 2*params.boxsize
+                    << "). Adding outer Cartesian box with dmax = "
+                    << params.dmax << "\n";
 
-        std::vector<double> LBox_outer = {2*params.boxsize};
-        std::vector<double> dx_outer = {params.dmax};
+            std::vector<double> LBox_outer = {2*params.boxsize};
+            std::vector<double> dx_outer = {params.dmax};
 
-        gas = sample_cartesian(LBox_outer, dx_outer, &gas);
+            gas = sample_cartesian(LBox_outer, dx_outer, &gas);
 
-        logfile << "Added outer Cartesian box: LBox = "
-                << 2*params.boxsize
-                << ", dx = " << params.dmax << "\n";
+            logfile << "Added outer Cartesian box: LBox = "
+                    << 2*params.boxsize
+                    << ", dx = " << params.dmax << "\n";
 
-        std::cerr << "sampled outer Cartesian box\n";
+            std::cerr << "sampled outer Cartesian box\n";
+        }
     }
     double xmin = -params.boxsize;
     double xmax = params.boxsize;
